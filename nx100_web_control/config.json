@@ -6,6 +6,12 @@
   "auto_send_delay_ms": 400,
   "move_timeout_seconds": 60,
   "tolerance": {"xyz_mm": 1.0, "angle_deg": 0.5},
+  "vision": {
+    "calibration_file": "C:/Data/Calib Eye to Hand - UP50N NX100/results/eye_to_hand.json",
+    "camera_project": "C:/Data/Calib Eye to Hand - UP50N NX100",
+    "work_plane_z_mm": null,
+    "preview_max_width": 1280
+  },
   "speed": {
     "movl": {"min": 0.1, "max": 100, "default": 5, "step": 0.1, "unit": "mm/s"},
     "movj": {"min": 0.01, "max": 100, "default": 2, "step": 0.01, "unit": "%"}

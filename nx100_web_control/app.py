@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from robot.nx100_controller import ControlError, NX100Controller
+from vision.camera import VisionService
 
 BASE = Path(__file__).resolve().parent
 
@@ -55,6 +56,17 @@ class JointMove(Input):
     t: int = Field(strict=True)
 
 
+class CameraConnection(Input):
+    index: int = Field(ge=0, strict=True)
+
+
+class PixelPoint(Input):
+    frame_id: str = Field(min_length=32, max_length=32)
+    u: int = Field(ge=0, strict=True)
+    v: int = Field(ge=0, strict=True)
+    plane_z_mm: float
+
+
 def create_app(mock=False, controller=None):
     config = json.loads((BASE / "config.json").read_text(encoding="utf-8"))
     config.setdefault("auto_send_delay_ms", 50)
@@ -63,15 +75,18 @@ def create_app(mock=False, controller=None):
     if not 500 <= config["poll_interval_ms"] <= 10000:
         raise ValueError("poll_interval_ms must be 500..10000")
     robot = controller or NX100Controller(config, mock=mock)
+    vision = VisionService(config.get("vision", {}), mock=robot.mock)
 
     @asynccontextmanager
     async def lifespan(app):
         robot.start_monitor()
         yield
         robot.close()
+        vision.close()
 
     app = FastAPI(title="NX100 Web Control", lifespan=lifespan, docs_url=None, redoc_url=None)
     app.state.robot = robot
+    app.state.vision = vision
 
     @app.middleware("http")
     async def local_only(request: Request, call_next):
@@ -121,6 +136,38 @@ def create_app(mock=False, controller=None):
     @app.get("/")
     def index():
         return FileResponse(BASE / "templates" / "index.html")
+
+    @app.get("/camera")
+    def camera_page():
+        return FileResponse(BASE / "templates" / "camera.html")
+
+    @app.get("/api/vision/status")
+    def vision_status():
+        return vision.status()
+
+    @app.post("/api/vision/reload")
+    def vision_reload():
+        return vision.reload()
+
+    @app.post("/api/vision/enumerate")
+    def vision_enumerate():
+        return {"devices": vision.enumerate()}
+
+    @app.post("/api/vision/connect")
+    def vision_connect(body: CameraConnection):
+        return vision.connect(body.index)
+
+    @app.post("/api/vision/disconnect")
+    def vision_disconnect():
+        return vision.disconnect()
+
+    @app.get("/api/vision/frame")
+    def vision_frame():
+        return vision.frame()
+
+    @app.post("/api/vision/pixel-to-base")
+    def vision_pixel(body: PixelPoint):
+        return vision.convert(body.frame_id, body.u, body.v, body.plane_z_mm)
 
     @app.get("/api/config")
     def get_config():

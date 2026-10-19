@@ -45,7 +45,27 @@ DISCONNECT, đóng browser hoặc dừng server không tự dừng robot. Backen
 
 J1/S … J6/T đọc realtime từ `RPOSJ` theo pulse, không tự đổi sang độ. Các ô Joint chỉ đọc.
 
-MOVE pulse chưa được hỗ trợ; API `/api/move/joint` trả 501 `JOINT_MOVE_UNSUPPORTED`. Module hiện tại nhận XYZ/TX/TY/TZ cho MOVJ, không có lệnh tới đích pulse đã xác minh. Không dùng pulse làm XYZ. Không có camera, vacuum, JOB sequence hay AI vision ở phase này.
+MOVE pulse chưa được hỗ trợ; API `/api/move/joint` trả 501 `JOINT_MOVE_UNSUPPORTED`. Module hiện tại nhận XYZ/TX/TY/TZ cho MOVJ, không có lệnh tới đích pulse đã xác minh. Không dùng pulse làm XYZ. Camera hiện có trang kiểm tra tọa độ riêng; chưa có vacuum, JOB sequence hay AI vision.
+
+## Camera → BASE: click pixel để xem XYZ
+
+Mở **http://127.0.0.1:8000/camera** hoặc nhấn CAMERA → BASE ở header. Trang này chỉ hiển thị điểm, không gọi API chuyển động và không điền vào input auto-send của trang robot.
+
+1. Nhấn FIND CAMERA, chọn camera MVS, CONNECT CAMERA. Adapter được import trực tiếp từ `vision.camera_project/calib_mvs.py` của project calib; không chỉnh sửa source calib. Không tự mở camera khi khởi động backend. Nếu camera đang bị MVS hoặc app calib giữ độc quyền, ngắt camera ở app đó trước.
+2. Click ảnh để giữ frame và xem **u, v trên ảnh gốc**. Preview được thu nhỏ nhưng tọa độ click được quy về ảnh raw; không dùng pixel CSS làm pixel calib. RESUME LIVE để lấy frame mới/chọn điểm khác.
+3. Nhập **Z mặt vật trong hệ BASE, mm**, nhấn Enter hoặc CALCULATE XYZ. Không có Z mặc định. Calib ở nhiều dải cao không tạo bản đồ depth; với camera 2D, pixel xác định một tia nhìn. Cần biết mặt phẳng chứa điểm để chọn điểm duy nhất trên tia.
+4. Backend khử distortion bằng K/distortion, dựng tia trong camera rồi chuyển bằng **T_base_camera**. Giao điểm tia với `Z_BASE = giá trị nhập` cho X/Y/Z theo mm. Camera phải giữ đúng vị trí lắp, cùng camera/lens/focus/ROI/binning như khi calib. Frame khác độ phân giải calib bị chặn; không tự scale K. Thay Z sẽ xóa kết quả cũ, cần tính lại.
+5. RX/RY/RZ không thể suy ra từ một pixel; trang không tự tạo tư thế tool hoặc đảm bảo robot có thể tới điểm/không va chạm. Điểm đang hiển thị là ước tính để đo kiểm; TCP/tool cần đúng khi bạn dùng tọa độ trên robot.
+
+File mặc định: `C:/Data/Calib Eye to Hand - UP50N NX100/results/eye_to_hand.json`. File này đã chứa cả `T_base_camera`, K, distortion và kích thước **5472×3648**, nên không trộn intrinsic khác. Tịnh tiến khai báo mm, chiều ma trận Camera → robot Base. RELOAD RESULT đọc lại file nếu bạn calib lại. Config `vision.work_plane_z_mm` mặc định null; chỉ đặt khi đã đo biết mặt phẳng cần dùng.
+
+Kết quả được kiểm tra trong phiên này đang **needs_review**, 22/22 outlier; residual tịnh tiến RMS **63.967 mm**, tối đa **129.272 mm**; residual quay RMS **16.812°** và reprojection RMS **184.333 px**. Đây là độ không nhất quán trên bộ mẫu, không phải bảo đảm sai số của mọi điểm click. UI hiển thị chất lượng cùng tọa độ; không coi bộ ma trận này là đã xác minh chính xác để đưa robot tới điểm. Cần kiểm tra ghép ảnh/pose, quy ước Euler, frame tool và thứ tự bảng, rồi đo kiểm độc lập.
+
+MOCK dùng ảnh lưới tổng hợp, kích thước logic như calib và có nhãn MOCK; không phải ảnh camera thật. Trang hiển thị rõ MOCK ESTIMATE. Frame dùng chuyển đổi hết hạn sau 60 giây hoặc khi ngắt camera/reload calib. Nếu cần ảnh mới, nhấn RESUME LIVE.
+
+API mới: GET `/api/vision/status`, `/api/vision/frame`; POST `/api/vision/enumerate`, `/api/vision/connect` (`index`), `/api/vision/disconnect`, `/api/vision/reload`, `/api/vision/pixel-to-base` (`frame_id`, `u`, `v`, `plane_z_mm`). Các POST vẫn dùng header local như API robot. Dữ liệu camera có lock riêng; không tranh lock Ethernet NX100.
+
+Test riêng: `python tests/camera_smoke.py` với server MOCK trên cổng 8001; đặt `NX100_TEST_URL` nếu dùng URL khác. Test không kết nối robot/camera thật. Thuật toán undistort theo [tài liệu OpenCV](https://docs.opencv.org/4.11.0/d9/d0c/group__calib3d.html).
 
 ## MOCK riêng
 

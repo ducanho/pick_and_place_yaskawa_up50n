@@ -1,0 +1,95 @@
+CHẠY REALTIME
+
+Toàn bộ ứng dụng YOLO nằm trong folder "YOLO_HIKROBOT_Robot_Coordinates".
+Chạy trực tiếp file chính yolo_camera_robot_realtime.py bằng Python.
+Từ thư mục TCP - YASKAWA có thể chạy:
+    python .\YOLO_HIKROBOT_Robot_Coordinates\yolo_camera_robot_realtime.py
+Model, kết quả train và dữ liệu YOLO nằm trong runs/ của folder này.
+Offset X/Y nằm trong calibration_transform.py của folder này.
+
+Cách chạy trên máy hiện tại, kể cả khi terminal đang kích hoạt .venv:
+    python yolo_camera_robot_realtime.py
+File chính tự kiểm tra Python hiện tại, Python gốc tạo .venv, .venv trong
+folder này/thư mục cha và python trên PATH, chọn môi trường có cả YOLO
+và OpenCV GUI. Không cần chạy file CMD hay PowerShell.
+Kiểm tra môi trường không mở camera:
+    python yolo_camera_robot_realtime.py --check
+
+Tại thư mục YOLO_HIKROBOT_Robot_Coordinates:
+    python yolo_camera_robot_realtime.py
+
+Nhập Z mặt phẳng làm việc trong hệ Robot Base, đơn vị mm, khi được hỏi.
+Z là cao độ mặt phẳng song song XY Base; không phải khoảng cách camera,
+không lấy từ pose calibration, không tự bù chiều dài tool/chiều dày ván.
+
+Cũng có thể truyền Z đã biết:
+    python yolo_camera_robot_realtime.py --z <Z_mm>
+
+RX/RY/RZ mặc định = 180 / 0 / 90 độ theo yêu cầu người dùng.
+Đây là hướng cố định, không suy ra từ bbox hoặc pose mẫu calibration.
+Muốn dùng hướng khác, truyền:
+    python yolo_camera_robot_realtime.py --z <Z_mm> --orientation <RX> <RY> <RZ>
+Đơn vị độ, convention ghi trong calibration: intrinsic xyz,
+RX theo trục X, RY theo Y, RZ theo Z.
+
+ESC hoặc Q: thoát, dừng stream và giải phóng camera.
+N/P: chuyển trang chi tiết khi có nhiều hơn hai vật thể.
+Mọi bbox và tâm đều được vẽ; terminal xuất riêng từng vật thể.
+Terminal mặc định cập nhật mỗi giây; --print-interval 0 để xuất mỗi frame.
+
+FILE ĐANG DÙNG
+
+Model duy nhất tìm được: runs/detect_van_v1/weights/best.pt.
+Chương trình tự tìm runs/**/weights/best.pt khi khởi động.
+Nếu có nhiều model, so sánh mAP50-95(B) trong results.csv; nếu thiếu metrics,
+cần chọn rõ bằng --model runs/.../weights/best.pt.
+
+Đã copy nguyên byte hai file:
+    calibration/camera_intrinsic_2.npz
+    calibration/eye_to_hand.npz
+
+K và distortion thực dùng được đọc từ eye_to_hand.npz, đúng như code cũ.
+Chương trình đối chiếu với camera_intrinsic_2.npz khi khởi động.
+Intrinsic upload gốc trong report là 9d5d5670a4c54cdc8b51ee0d749fcfff.npz;
+K/distortion của nó trùng chính xác camera_intrinsic_2.npz.
+camera_intrinsic.npz (không có _2) là một bộ khác và không được sử dụng.
+Các đường dẫn lịch sử bên trong report_json NPZ chỉ là metadata; không mở
+những đường dẫn đó. Không import hoặc đọc bất kỳ file nào từ project cũ.
+
+CHUYỂN TỌA ĐỘ
+
+Camera MVS SDK: EnumDevices (GigE/USB), OpenDevice Exclusive,
+TriggerMode OFF, StartGrabbing, GetImageBuffer, ConvertPixelTypeEx,
+FreeImageBuffer. Đọc pixel format nguồn từ từng frame, chuyển RGB8 Packed
+bằng SDK rồi chuyển BGR cho YOLO. Giữ nguyên ROI/binning/resolution camera.
+
+Ảnh gốc 5472x3648 -> YOLO (letterbox nội bộ) -> boxes.xyxy đã ở ảnh gốc.
+u=(x1+x2)/2; v=(y1+y2)/2, giữ số thực.
+undistortPoints(K,distortion) -> tia camera -> T_base_camera -> giao Z Base.
+Sau giao điểm: X=X_raw+280.0 mm; Y=Y_raw+215.0 mm; Z=Z người dùng nhập.
+Y đã tăng thêm 15 mm từ +200 mm. X giữ giá trị hiện tại trong code (+280 mm).
+Không thay matrix, không recalibrate. Chỉ resize preview để hiển thị.
+Camera trả kích thước khác calibration sẽ báo lỗi, không tự scale K.
+
+TRẠNG THÁI CALIBRATION HIỆN CÓ
+
+needs_review; 22/22 outlier; RMS XYZ khoảng 63.97 mm; RMS ảnh 184.33 px.
+Giữ nguyên các kết quả này. Cần đo kiểm tọa độ trên hệ thật.
+Chương trình không kết nối bộ điều khiển NX100 và không gửi lệnh robot.
+
+MÔI TRƯỜNG VÀ KIỂM TRA
+
+Python mặc định trên máy hiện tại có ultralytics/torch/numpy/cv2.
+.venv của project tại thời điểm viết chưa có ultralytics/torch.
+Nếu cần môi trường khác: python -m pip install -r requirements-realtime.txt
+MVS SDK và driver phải được cài riêng trên máy chạy; không nằm trong pip.
+Dùng --sdk-root để chọn thư mục MVS Development nếu cần.
+
+    python yolo_camera_robot_realtime.py --check
+
+--check tải model, kiểm tra calibration và SDK, không mở stream camera.
+Đã kiểm tra syntax/import, hash file copy, 396 điểm/Z so với code cũ,
+chiếu thuận/ngược có distortion, từ chối ảnh sai kích thước, YOLO inference
+trên ảnh native, và lấy frame thật 3648x5472x3 bằng MVS SDK.
+Chưa xác nhận độ chính xác tọa độ trên vật thể thực hoặc thử cửa sổ liên tục
+với Z làm việc do người dùng nhập.

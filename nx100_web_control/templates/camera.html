@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Camera → BASE · NX100</title><link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/css/style.css"><link rel="stylesheet" href="/static/css/camera.css">
+  <script src="/static/js/camera.js" defer></script>
+</head>
+<body><div class="shell">
+  <header><div class="identity"><span class="brand">YASKAWA<span class="brand-dot">.</span></span><div><h1>CAMERA <span>→ ROBOT BASE</span></h1><p>PIXEL INSPECTION / EYE TO HAND</p></div></div><div class="header-right"><a class="badge" href="/">ROBOT CONTROL</a><span class="badge" id="visionMode">LOADING</span></div></header>
+  <div id="quality" class="notice">Đang đọc kết quả calib…</div>
+  <div class="connection-bar camera-connection"><button id="findCamera">FIND CAMERA</button><select id="cameraDevice" aria-label="Camera device"><option value="">Chọn camera</option></select><button id="openCamera" class="primary" disabled>CONNECT CAMERA</button><button id="closeCamera" disabled>DISCONNECT</button><span class="muted" id="cameraStatus">Chưa kết nối</span></div>
+  <div class="vision-grid">
+    <section class="panel camera-panel"><div class="panel-top"><div><span class="eyebrow">01 / CAMERA VIEW</span><h2>Click a point</h2></div><button id="live" disabled>LIVE</button></div>
+      <p class="muted" id="frameInfo">Chưa có frame</p><div class="canvas-wrap"><canvas id="cameraCanvas" width="1280" height="853" aria-label="Click camera image to select pixel"></canvas><p id="emptyCamera">CONNECT CAMERA để xem ảnh. Click sẽ giữ ảnh để kiểm tra điểm.</p></div>
+      <p class="range-note">Pixel tính trên ảnh gốc, không phải kích thước preview. Click chỉ hiển thị tọa độ; không gửi lệnh robot.</p>
+    </section>
+    <aside class="side-column">
+      <section class="panel point-panel"><span class="eyebrow">02 / SELECTED PIXEL</span><h2 id="pixelValue">u — / v —</h2><label class="plane-label" for="planeZ">Z mặt vật trong hệ BASE <small>mm</small></label><input id="planeZ" type="number" step="any" placeholder="Nhập Z đã đo" aria-label="Work plane BASE Z mm"><p class="range-note">Nhập độ cao mặt phẳng chứa điểm click. Calib nhiều độ cao không cung cấp depth cho từng pixel.</p><button id="convertPoint" class="primary wide" disabled>CALCULATE XYZ</button>
+      </section>
+      <section class="panel point-panel"><span class="eyebrow">03 / ROBOT BASE · mm</span><div id="pointPhase" class="readiness">SELECT A PIXEL</div><dl class="point-values"><div><dt>X</dt><dd id="baseX">—</dd></div><div><dt>Y</dt><dd id="baseY">—</dd></div><div><dt>Z</dt><dd id="baseZ">—</dd></div></dl><p id="pointMessage" class="range-note">Tọa độ giao điểm tia nhìn với mặt phẳng Z. RX/RY/RZ không xác định từ pixel.</p><p class="hardware-note">Điểm ước tính để kiểm tra, chưa xác nhận độ chính xác chuyển động.</p></section>
+    </aside>
+  </div>
+  <section class="panel point-panel calibration-details"><div class="panel-top"><h2>Calibration result</h2><button id="reloadCalibration">RELOAD RESULT</button></div><p class="muted" id="calibrationSource"></p><details><summary>Ma trận và residual</summary><pre id="calibrationDetails"></pre></details></section>
+  <p id="cameraError" role="status" aria-live="polite"></p>
+  <footer><span>RAW PIXEL → UNDISTORT → CAMERA RAY → BASE Z PLANE</span><span>READ-ONLY COORDINATE INSPECTION</span></footer>
+</div></body></html>

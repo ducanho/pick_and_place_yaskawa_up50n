@@ -1,0 +1,17 @@
+{
+  "robot_ip": "192.168.255.1", "robot_port": 80,
+  "timeout_seconds": 2, "poll_interval_ms": 200, "move_timeout_seconds": 60,
+  "tolerance": {"xyz_mm": 1.0, "angle_deg": 0.5},
+  "speed": {"movl": {"min": 0.1, "max": 100}, "movj": {"min": 0.01, "max": 100}},
+  "tracking": {
+    "plane_z_mm": 0.0, "rx": 180.0, "ry": 0.0, "rz": 90.0,
+    "movl_speed": 5.0, "confidence": 0.5, "position_tolerance_mm": 3.0,
+    "minimum_move_distance_mm": 50.0, "max_frame_age_ms": 500,
+    "max_frame_gap_ms": 500, "min_stable_frames": 10, "stable_duration_seconds": 2.0
+  },
+  "vision": {"imgsz": 960, "device": "cpu", "sdk_root": null, "preview_max_width": 960},
+  "workspace": {"x": [-2000, 2000], "y": [-2000, 2000], "z": [-500, 2500]},
+  "robot_pose": {"expected_tool": null, "expected_posture": null},
+  "home": [500.0, 0.0, 0.0, 180.0, 0.0, 90.0],
+  "web": {"allowed_hosts": ["127.0.0.1", "localhost"], "port": 8000}
+}

@@ -68,6 +68,7 @@ import numpy as np
 
 from calibration_transform import InputError, PixelToRobot, OUTPUT_OFFSET_X_MM, OUTPUT_OFFSET_Y_MM
 from hik_camera import MvsCamera
+from board_tracker import BoardTracker
 
 ROOT = Path(__file__).resolve().parent
 CALIBRATION = ROOT / "calibration" / "eye_to_hand.npz"
@@ -103,16 +104,6 @@ def finite_number(value):
     return number
 
 
-def read_plane_z(value=None):
-    if value is not None:
-        return value
-    while True:
-        try:
-            return finite_number(input("Nhap Z mat phang trong Robot Base (mm): ").strip())
-        except (ValueError, argparse.ArgumentTypeError):
-            print("Nhap mot so huu han (mm).")
-
-
 def detections_from_result(result, calibration, plane_z):
     # Ultralytics boxes.xyxy already refers to result.orig_shape, BEFORE letterbox.
     # Inference receives the full native BGR frame; no manual input resize/undistort.
@@ -135,24 +126,102 @@ def detections_from_result(result, calibration, plane_z):
 def pose_lines(item, orientation):
     if "error" in item:
         return ["Robot: unavailable", item["error"]]
-    lines = [f"{axis} = {value:.3f} mm" for axis, value in zip("XYZ", item["xyz"])]
+    lines = [f"{axis} = {value:+.3f} mm" for axis, value in zip("XYZ", item["xyz"])]
     return lines + [f"{axis} = {value:.3f} deg" if value is not None else f"{axis} = chua thiet lap"
                     for axis, value in zip(("RX", "RY", "RZ"), orientation)]
 
 
-def render(frame, detections, orientation, quality, page):
+class HeightInput:
+    """Mouse/keyboard Z field drawn directly inside the OpenCV window."""
+    def __init__(self, value=0.0):
+        self.value = value
+        self.text = f"{value:g}"
+        self.active = self.select_all = False
+        self.error = ""
+        self.bounds = self.button = None
+
+    def apply(self):
+        try:
+            value = finite_number(self.text)
+        except (ValueError, argparse.ArgumentTypeError):
+            self.error = "Nhap so hop le; Z dang dung khong thay doi."
+            self.active = True
+            return
+        self.value = value
+        self.text = f"{value:g}"
+        self.active = self.select_all = False
+        self.error = ""
+
+    def mouse(self, event, x, y, flags, param):
+        if event != cv2.EVENT_LBUTTONDOWN:
+            return
+        def inside(rect):
+            return rect and rect[0] <= x <= rect[2] and rect[1] <= y <= rect[3]
+        if inside(self.bounds):
+            self.active = self.select_all = True
+        elif inside(self.button):
+            self.apply()
+        else:
+            self.active = self.select_all = False
+            self.text = f"{self.value:g}"
+            self.error = ""
+
+    def key(self, key):
+        if not self.active or key == 255:
+            return False
+        if key in (10, 13):
+            self.apply()
+        elif key == 27:
+            self.active = self.select_all = False
+            self.text, self.error = f"{self.value:g}", ""
+        elif key == 1:  # Ctrl+A
+            self.select_all = True
+        elif key in (8, 127):
+            self.text = "" if self.select_all else self.text[:-1]
+            self.select_all = False
+        elif chr(key) in "0123456789.+-eE":
+            if self.select_all:
+                self.text = ""
+                self.select_all = False
+            if len(self.text) < 20:
+                self.text += chr(key)
+            self.error = ""
+        return True
+
+    def draw(self, canvas, left):
+        top = canvas.shape[0] - 88
+        self.bounds = (left, top, left + 290, top + 36)
+        self.button = (left + 306, top, left + 448, top + 36)
+        cv2.putText(canvas, f"CHIEU CAO Z (Base, mm): {self.value:g}", (left, top - 12),
+                    cv2.FONT_HERSHEY_SIMPLEX, .56, (255, 255, 255), 1, cv2.LINE_AA)
+        cv2.rectangle(canvas, self.bounds[:2], self.bounds[2:], (55, 55, 55), -1)
+        cv2.rectangle(canvas, self.bounds[:2], self.bounds[2:],
+                      (0, 220, 255) if self.active else (160, 160, 160), 2)
+        if self.select_all:
+            cv2.rectangle(canvas, (left + 5, top + 4), (left + 282, top + 32), (140, 75, 20), -1)
+        cv2.putText(canvas, self.text + ("|" if self.active else ""), (left + 9, top + 25),
+                    cv2.FONT_HERSHEY_SIMPLEX, .65, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.rectangle(canvas, self.button[:2], self.button[2:], (55, 105, 45), -1)
+        cv2.putText(canvas, "AP DUNG", (left + 318, top + 24), cv2.FONT_HERSHEY_SIMPLEX,
+                    .6, (255, 255, 255), 2, cv2.LINE_AA)
+        hint = self.error or "Click de nhap / Enter: ap dung / Esc: huy"
+        cv2.putText(canvas, hint, (left, top + 59), cv2.FONT_HERSHEY_SIMPLEX,
+                    .47, (80, 140, 255) if self.error else (210, 210, 210), 1, cv2.LINE_AA)
+
+
+def render(frame, detections, orientation, quality, page, height_input=None):
     # Resize ONLY the preview. Bboxes and centers remain native calibration pixels.
     height, width = frame.shape[:2]
     scale = min(1100 / width, 900 / height)
     preview = cv2.resize(frame, (round(width * scale), round(height * scale)))
     canvas = np.full((max(850, preview.shape[0]), preview.shape[1] + 480, 3), 24, np.uint8)
     canvas[:preview.shape[0], :preview.shape[1]] = preview
-    for index, item in enumerate(detections, 1):
+    for item in detections:
         x1, y1, x2, y2 = [round(n * scale) for n in item["bbox"]]
         center = (round(item["u"] * scale), round(item["v"] * scale))
         cv2.rectangle(canvas, (x1, y1), (x2, y2), (0, 255, 80), 2)
         cv2.drawMarker(canvas, center, (0, 0, 255), cv2.MARKER_CROSS, 22, 2)
-        cv2.putText(canvas, f"VAN {index}: {item['name']} {item['confidence']:.2f}",
+        cv2.putText(canvas, f"ID {item['id']:03d}: {item['name']} {item['confidence']:.2f}",
                     (x1, max(20, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, .6, (0, 255, 80), 2)
     pages = max(1, (len(detections) + 1) // 2)
     page = min(page, pages - 1)
@@ -162,12 +231,26 @@ def render(frame, detections, orientation, quality, page):
         lines += ["Khong phat hien van."]
     for i in range(page * 2, min(len(detections), page * 2 + 2)):
         item = detections[i]
-        lines += [f"VAN {i + 1}: {item['name']}", f"Confidence: {item['confidence']:.3f}",
+        lines += [f"ID {item['id']:03d}: {item['name']}", f"Confidence: {item['confidence']:.3f}",
                   f"Pixel: u={item['u']:.2f}", f"       v={item['v']:.2f}"]
         lines += pose_lines(item, orientation) + [""]
     for row, line in enumerate(lines):
-        cv2.putText(canvas, line, (preview.shape[1] + 12, 27 + row * 26),
-                    cv2.FONT_HERSHEY_SIMPLEX, .53, (230, 230, 230), 1, cv2.LINE_AA)
+        left, baseline = preview.shape[1] + 12, 27 + row * 26
+        if line.startswith(tuple(f"{axis} = " for axis in ("X", "Y", "Z", "RX", "RY", "RZ"))):
+            axis, value = line.split(" = ", 1)
+            cv2.putText(canvas, axis, (left, baseline), cv2.FONT_HERSHEY_SIMPLEX,
+                        .62, (255, 255, 255), 2, cv2.LINE_AA)
+            # Draw both strokes explicitly so '=' stays distinct from a minus sign.
+            for dy in (-11, -5):
+                cv2.line(canvas, (left + 46, baseline + dy), (left + 62, baseline + dy),
+                         (255, 255, 255), 2, cv2.LINE_AA)
+            cv2.putText(canvas, value, (left + 78, baseline), cv2.FONT_HERSHEY_SIMPLEX,
+                        .62, (255, 255, 255), 2, cv2.LINE_AA)
+        else:
+            cv2.putText(canvas, line, (left, baseline), cv2.FONT_HERSHEY_SIMPLEX,
+                        .53, (230, 230, 230), 1, cv2.LINE_AA)
+    if height_input is not None:
+        height_input.draw(canvas, preview.shape[1] + 12)
     return canvas, page, pages
 
 
@@ -176,7 +259,7 @@ def main():
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--z", type=finite_number, help="Base plane Z in mm; otherwise prompted at startup.")
+    parser.add_argument("--z", type=finite_number, default=0.0, help="Base plane Z in mm; default: 0 (no prompt).")
     parser.add_argument("--orientation", nargs=3, type=finite_number, metavar=("RX", "RY", "RZ"),
                         default=(180.0, 0.0, 90.0),
                         help="Target Euler angles in degrees, intrinsic xyz; default: 180 0 90.")
@@ -232,7 +315,8 @@ def main():
             print(f"MVS SDK: {camera.status()}")
             print("Calibration and model loaded. No camera stream opened.")
             return 0
-        plane_z = read_plane_z(args.z)
+        plane_z = args.z
+        height_input = HeightInput(plane_z)
         orientation = args.orientation
         print(f"Z plane: {plane_z:.3f} mm; orientation: {orientation}")
         print(f"Cameras: {camera.enumerate()}")
@@ -251,28 +335,38 @@ def main():
         cv2.namedWindow(WINDOW, cv2.WINDOW_NORMAL)
         window_created = True
         cv2.resizeWindow(WINDOW, 1500, 850)
+        cv2.setMouseCallback(WINDOW, height_input.mouse)
         next_print, page = 0.0, 0
+        tracker = BoardTracker(missing_timeout=10.0)
         while True:
             calibration.check_frame(frame)
             result = model.predict(source=frame, conf=args.conf, imgsz=args.imgsz,
                                    device=args.device, verbose=False)[0]
-            detections = detections_from_result(result, calibration, plane_z)
+            detections = detections_from_result(result, calibration, height_input.value)
             now = time.monotonic()
+            detections = tracker.update(detections, now)
             if now >= next_print:
                 print(f"\nDetections: {len(detections)}", flush=True)
-                for index, item in enumerate(detections, 1):
-                    print(f"Detection {index}:\nClass: {item['name']}\nConfidence: {item['confidence']:.3f}"
+                for item in detections:
+                    print(f"ID {item['id']:03d}:\nClass: {item['name']}\nConfidence: {item['confidence']:.3f}"
                           f"\nBBox: {item['bbox']}\nPixel center: {item['u']:.3f}, {item['v']:.3f}"
                           "\nRobot target:\n" + "\n".join(pose_lines(item, orientation)), flush=True)
                 next_print = now + args.print_interval
-            display, page, pages = render(frame, detections, orientation, calibration.quality, page)
+            display, page, pages = render(frame, detections, orientation, calibration.quality, page, height_input)
             cv2.imshow(WINDOW, display)
             key = cv2.waitKey(1) & 0xFF
-            if key in (27, ord('q'), ord('Q')) or cv2.getWindowProperty(WINDOW, cv2.WND_PROP_VISIBLE) < 1:
+            if cv2.getWindowProperty(WINDOW, cv2.WND_PROP_VISIBLE) < 1:
                 break
-            if key in (ord('n'), ord('N')):
+            consumed = height_input.key(key)
+            if height_input.value != plane_z:
+                plane_z = height_input.value
+                next_print = 0.0
+                print(f"Z plane updated: {plane_z:.3f} mm", flush=True)
+            if not consumed and key in (27, ord('q'), ord('Q')):
+                break
+            if not consumed and key in (ord('n'), ord('N')):
                 page = (page + 1) % pages
-            elif key in (ord('p'), ord('P')):
+            elif not consumed and key in (ord('p'), ord('P')):
                 page = (page - 1) % pages
             frame = camera.frame()
         return 0

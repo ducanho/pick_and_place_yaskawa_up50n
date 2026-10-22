@@ -18,7 +18,12 @@ Kiểm tra môi trường không mở camera:
 Tại thư mục YOLO_HIKROBOT_Robot_Coordinates:
     python yolo_camera_robot_realtime.py
 
-Nhập Z mặt phẳng làm việc trong hệ Robot Base, đơn vị mm, khi được hỏi.
+Z mặt phẳng làm việc mặc định là 0 mm trong hệ Robot Base, không hỏi nhập.
+Trong cửa sổ realtime, ô CHIEU CAO Z (Base, mm) nằm dưới bảng tọa độ.
+Click ô, nhập chiều cao rồi nhấn Enter hoặc nút AP DUNG để cập nhật.
+Đây là Z tuyệt đối trong Base, không tự cộng với chiều cao bàn.
+X/Y/Z được tính lại theo Z mới cho mọi ID; ID được giữ nguyên.
+Nhập sai sẽ báo lỗi và giữ Z đang dùng. Esc khi đang nhập: hủy chỉnh sửa.
 Z là cao độ mặt phẳng song song XY Base; không phải khoảng cách camera,
 không lấy từ pose calibration, không tự bù chiều dài tool/chiều dày ván.
 
@@ -35,6 +40,15 @@ RX theo trục X, RY theo Y, RZ theo Z.
 ESC hoặc Q: thoát, dừng stream và giải phóng camera.
 N/P: chuyển trang chi tiết khi có nhiều hơn hai vật thể.
 Mọi bbox và tâm đều được vẽ; terminal xuất riêng từng vật thể.
+ID ván cố định theo thứ tự xuất hiện, hiển thị ID 001, ID 002, ID 003...;
+001 mất thì 002 vẫn giữ 002, không đánh lại thành 001. Không đánh số lại theo
+confidence mỗi frame. Ván mất dưới 10 giây vẫn giữ ID để ghép lại theo vị trí.
+Không thấy ván liên tục đủ 10 giây: xóa track và giải phóng riêng ID đó.
+Ván mới được cấp ID nhỏ nhất còn trống. Các ván khác giữ nguyên ID.
+Nếu nhiều ván xuất hiện cùng một frame, cấp ID từ trái sang phải.
+Chỉ xuất tọa độ của ván đang thấy; không xuất mục tiêu từ frame cũ khi mất ván.
+Ghép ID dựa bbox/vị trí: hai ván giống nhau đổi chỗ hoặc che nhau hoàn toàn
+có thể bị nhầm ID; cần kiểm tra thực tế nếu ván chạy sát nhau.
 Terminal mặc định cập nhật mỗi giây; --print-interval 0 để xuất mỗi frame.
 
 FILE ĐANG DÙNG
@@ -66,7 +80,7 @@ bằng SDK rồi chuyển BGR cho YOLO. Giữ nguyên ROI/binning/resolution cam
 Ảnh gốc 5472x3648 -> YOLO (letterbox nội bộ) -> boxes.xyxy đã ở ảnh gốc.
 u=(x1+x2)/2; v=(y1+y2)/2, giữ số thực.
 undistortPoints(K,distortion) -> tia camera -> T_base_camera -> giao Z Base.
-Sau giao điểm: X=X_raw+280.0 mm; Y=Y_raw+215.0 mm; Z=Z người dùng nhập.
+Sau giao điểm: X=X_raw+280.0 mm; Y=Y_raw+215.0 mm; Z mặc định 0 mm (hoặc --z).
 Y đã tăng thêm 15 mm từ +200 mm. X giữ giá trị hiện tại trong code (+280 mm).
 Không thay matrix, không recalibrate. Chỉ resize preview để hiển thị.
 Camera trả kích thước khác calibration sẽ báo lỗi, không tự scale K.

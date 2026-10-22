@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NX100 · Vision tracking</title><link rel="stylesheet" href="/static/style.css"><script defer src="/static/app.js"></script></head>
+<body>
+<header><div><span class="eyebrow">YASKAWA UP50N / NX100</span><h1>Vision tracking <span id="mode" class="badge">—</span></h1></div><div id="network">Đang kết nối dashboard…</div></header>
+<main>
+<section class="control"><div><span class="eyebrow">AUTO MOVE</span><h2 id="state">DISCONNECTED</h2><p id="message">Kết nối robot và camera để bắt đầu.</p></div><div class="buttons"><button id="start" class="primary">START AUTO</button><button id="stop">STOP → HOME</button><button id="hold" class="danger">HOLD</button></div></section>
+<div id="error" role="alert" hidden></div>
+<div class="metrics"><article><label>ID được chọn</label><strong id="selected">—</strong></article><article><label>Khoảng cách tối thiểu</label><strong id="minimum">50 mm</strong></article><article><label>Target hợp lệ</label><strong id="eligible">0</strong></article><article><label>MOVE hoàn thành gần nhất</label><strong id="completed">—</strong></article></div>
+<div class="columns">
+<section><div class="section-heading"><h2>Robot connection</h2><span id="robot-status" class="badge">Disconnected</span></div><form id="robot-form"><label>Robot IP<input name="ip" value="192.168.255.1" required></label><label>Port<input name="port" value="80" type="number" min="1" max="65535" required></label><button>CONNECT ROBOT</button><button type="button" id="robot-disconnect">DISCONNECT</button></form><div id="flags" class="flags"></div><h3>Vị trí thực tế · RPOSC Base</h3><div id="pose" class="pose"></div><p id="joint" class="muted">RPOSJ · pulse</p><p id="motion" class="muted">Chưa có lệnh MOVE</p></section>
+<section><div class="section-heading"><h2>Camera / YOLO</h2><span id="camera-status" class="badge">Disconnected</span></div><div class="buttons"><button id="scan">SCAN CAMERA</button><select id="cameras" aria-label="Camera"><option value="0">Camera 0</option></select><button id="camera-connect">CONNECT</button><button id="camera-disconnect">DISCONNECT</button></div><div class="preview"><img id="preview" alt="Live camera preview với bounding box và object ID" hidden><span id="preview-empty">Kết nối camera để xem live preview</span></div><p id="vision-info" class="muted">FPS —</p></section>
+</div>
+<section><div class="section-heading"><h2>YOLO target position</h2><span class="muted">10 frame mới + thêm 2 giây ổn định · ưu tiên ID nhỏ nhất hợp lệ</span></div><div class="table-scroll"><table><thead><tr><th>ID / track</th><th>Class</th><th>Conf.</th><th>Pixel U / V</th><th>X / Y / Z · mm</th><th>RX / RY / RZ · °</th><th>Frames</th><th>Seconds</th><th>Δ last · mm</th><th>Δ same ID · mm</th><th>Eligibility</th></tr></thead><tbody id="targets"></tbody></table></div><p id="selected-pose" class="muted"></p></section>
+<div class="columns">
+<section><h2>Configuration</h2><p class="muted">Plane Z là tọa độ mặt phẳng trong Base. Góc lấy từ cấu hình. Thay đổi cấu hình sẽ xác nhận lại target chưa gửi.</p><form id="config-form" class="config-grid"></form></section>
+<section><h2>Calibration</h2><p id="calibration"></p><p class="muted">Dùng calibration hiện có theo xác nhận của người vận hành. HOLD là dừng có kiểm soát, không thay thế Emergency Stop phần cứng. STOP đợi MOVE hiện tại rồi về HOME.</p><p id="stop-status" class="muted"></p></section>
+</div>
+<section><div class="section-heading"><h2>Event log</h2><span class="muted">Quyết định và phản hồi controller</span></div><pre id="events"></pre></section>
+</main><footer>NX100 + HIKROBOT + YOLO · XYZ mm / góc ° / joint pulse · Một automation controller</footer>
+</body></html>

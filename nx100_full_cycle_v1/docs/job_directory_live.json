@@ -1,0 +1,37 @@
+{
+  "command": "RJDIR *",
+  "job_count": 120,
+  "moveunti_found": true,
+  "moveunti_index": 87,
+  "raw": "CatDP,R_Am,Rakhuon,RAcung,Khoan_1,bench18,CAT_N,K_NEW,main,KKKHOAN,cut,NEWCAT,K_PHAI,K_GIUA,N1,K_TRAI,NNNGAM,NNN,M_LO,TRON\rlongbbb,AUTO-TRA,BENCH18,M_PHAI,NNN33,C_NV1,P2C_NV2,NOVA1,N-23,cut001,shalate,catgon,khoan10,khoan12,shala06,khoan9a,khoan9b,khoan9d,shala01,shala02\rmeA,cattua0,CatDT,AUTO,rakh,cat_din,radinh,Ra1,RAA,RAB,tt,TuaRoun,CATL3,MAIN_CA,rafame,rafame2,CAT_RA,Cat,NGAM,bieCAT\rProg9,CTC,CBEcip,T_Ngam,CatBien,N-3,N-33,longbbb1,M_TRAI,M_GIUA,AUTO-ALL,N-332,C_NV2,P3C_NV3,N-235222,check,BAT-TAT,KHOAN07,meofset,rangang\rKHOANMA,khoan11,shala05,meB,mainME_,HOME,MOX100,MOVEUNTI,H1ON,H1OFF,H2ON,H2OFF,CatMC,Ra2,Khoan1,MainPro,R_Am1,R_ANM,biendan,Khoan\rCAT_NN,K_LO,M_Pro,Vuong,C_NGAM,CatBienN,NV_MAIN,NOVA,P1C_NV1,N-2352,NEWCAT23,CATMENE,metest,ra,shala04,catgonB,shala03,catgonA,ME_Achi,bien\r",
+  "trace": [
+    [
+      "TX",
+      "b'CONNECT Robot_access\\r\\n'"
+    ],
+    [
+      "RX",
+      "b'OK: NX Information Server(4.165).\\r\\n'"
+    ],
+    [
+      "TX",
+      "b'HOSTCTRL_REQUEST RJDIR 2\\r\\n'"
+    ],
+    [
+      "RX",
+      "b'OK: RJDIR\\r\\n'"
+    ],
+    [
+      "TX",
+      "b'*\\r'"
+    ],
+    [
+      "RX",
+      "b'CatDP,R_Am,Rakhuon,RAcung,Khoan_1,bench18,CAT_N,K_NEW,main,KKKHOAN,cut,NEWCAT,K_PHAI,K_GIUA,N1,K_TRAI,NNNGAM,NNN,M_LO,TRON\\rlongbbb,AUTO-TRA,BENCH18,M_PHAI,NNN33,C_NV1,P2C_NV2,NOVA1,N-23,cut001,shalate,catgon,khoan10,khoan12,shala06,khoan9a,khoan9b,k'"
+    ],
+    [
+      "RX",
+      "b'hoan9d,shala01,shala02\\rmeA,cattua0,CatDT,AUTO,rakh,cat_din,radinh,Ra1,RAA,RAB,tt,TuaRoun,CATL3,MAIN_CA,rafame,rafame2,CAT_RA,Cat,NGAM,bieCAT\\rProg9,CTC,CBEcip,T_Ngam,CatBien,N-3,N-33,longbbb1,M_TRAI,M_GIUA,AUTO-ALL,N-332,C_NV2,P3C_NV3,N-235222,check,BAT-TAT,KHOAN07,meofset,rangang\\rKHOANMA,khoan11,shala05,meB,mainME_,HOME,MOX100,MOVEUNTI,H1ON,H1OFF,H2ON,H2OFF,CatMC,Ra2,Khoan1,MainPro,R_Am1,R_ANM,biendan,Khoan\\rCAT_NN,K_LO,M_Pro,Vuong,C_NGAM,CatBienN,NV_MAIN,NOVA,P1C_NV1,N-2352,NEWCAT23,CATMENE,metest,ra,shala04,catgonB,shala03,catgonA,ME_Achi,bien\\r'"
+    ]
+  ]
+}

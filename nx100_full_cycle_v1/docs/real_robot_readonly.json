@@ -1,0 +1,6 @@
+{
+  "RSTATS": {
+    "ok": false,
+    "error": "Không kết nối được TCP tới 192.168.255.1:80 (timeout cấu hình 2 giây). Chưa gửi lệnh NX100. Kiểm tra IP trên pendant, subnet của cổng Ethernet máy tính, dây LAN và port/Ethernet Server. Chi tiết: timed out"
+  }
+}

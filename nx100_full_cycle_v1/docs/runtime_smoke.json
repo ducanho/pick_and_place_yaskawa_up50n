@@ -1,0 +1,8 @@
+{
+  "mode": "MOCK",
+  "state": "IDLE",
+  "robot_connected": false,
+  "camera_connected": false,
+  "url": "http://127.0.0.1:8010",
+  "second_process_blocked": true
+}

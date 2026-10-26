@@ -1,0 +1,17 @@
+{
+  "opencv": "5.0.0",
+  "torch": "2.13.0+cu126",
+  "ultralytics": "8.4.182",
+  "model_loaded": true,
+  "blank_image_inference": true,
+  "inference_seconds": 11.64,
+  "detections_on_blank_image": 0,
+  "model_path": "C:\\Data\\TCP - YASKAWA\\nx100_full_cycle_v1\\models\\best.pt",
+  "mvs": {
+    "available": true,
+    "connected": false,
+    "sdk_version": "0x04060168",
+    "message": "SDK khả dụng; camera chưa kết nối."
+  },
+  "camera_devices": []
+}

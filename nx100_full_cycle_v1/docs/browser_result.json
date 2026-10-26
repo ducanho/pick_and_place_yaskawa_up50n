@@ -1,0 +1,20 @@
+{
+  "desktop": "1920x1080",
+  "desktop_fits_viewport": true,
+  "tablet": "1024x768",
+  "tablet_no_horizontal_overflow": true,
+  "cycle": "COMPLETE",
+  "automatic_h2on": true,
+  "z_completion": "laser_on_and_stopped",
+  "default_speed": 80,
+  "manual_vacuum1": "ON",
+  "release_hold": "OFF",
+  "h2off": "complete",
+  "automatic_count": true,
+  "post_drop_z": 530,
+  "stacked_count": 1,
+  "next_drop_z": 342,
+  "reset_stack_count": 0,
+  "reset_next_drop_z": 330,
+  "js_errors": []
+}

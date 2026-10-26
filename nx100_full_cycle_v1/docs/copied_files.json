@@ -1,0 +1,16 @@
+{
+  "robot/cartesian.py": "nx100_camera_snapshot_move/robot/cartesian.py",
+  "robot/status.py": "nx100_camera_snapshot_move/robot/status.py",
+  "vision/calibration.py": "nx100_camera_snapshot_move/vision/calibration.py",
+  "vision/camera.py": "nx100_camera_snapshot_move/vision/camera.py",
+  "vision/detector.py": "nx100_camera_snapshot_move/vision/detector.py",
+  "vision/tracker.py": "nx100_camera_snapshot_move/vision/tracker.py",
+  "calibration/eye_to_hand.npz": "nx100_camera_snapshot_move/calibration/eye_to_hand.npz",
+  "calibration/camera_intrinsic_2.npz": "nx100_camera_snapshot_move/calibration/camera_intrinsic_2.npz",
+  "models/best.pt": "nx100_camera_snapshot_move/models/best.pt",
+  "robot/protocol.py": "nx100-remote-control-master/nx100-remote-control-master/src/nx100_remote_control/module/Protocol.py",
+  "tests/test_tracker.py": "yolo_hikrobot_robot_coordinates/tests/test_board_tracker.py",
+  "docs/HW0483202.pdf": "datasheet/33175396.pdf",
+  "docs/source_camera_config.json": "nx100_camera_snapshot_move/config.json",
+  "LICENSE": "nx100-remote-control-master/nx100-remote-control-master/LICENSE"
+}

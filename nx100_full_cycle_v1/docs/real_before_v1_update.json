@@ -1,0 +1,15 @@
+﻿{
+    "mode":  "REAL",
+    "state":  "FAULT",
+    "busy":  false,
+    "error":  "192.168.255.1:80 â Äá»c káº¿t quáº£ START: ERROR: [START] is not successful(2070).",
+    "pending":  {
+                    "name":  "START",
+                    "payload":  "H2ON",
+                    "at":  1792812944.6964595
+                },
+    "manual_job":  {
+                       "name":  "H2ON",
+                       "status":  "unknown"
+                   }
+}

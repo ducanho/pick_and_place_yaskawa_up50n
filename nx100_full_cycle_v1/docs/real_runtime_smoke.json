@@ -1,0 +1,8 @@
+{
+  "mode": "REAL",
+  "state": "IDLE",
+  "busy": false,
+  "robot_connected": false,
+  "camera_connected": false,
+  "url": "http://127.0.0.1:8011"
+}

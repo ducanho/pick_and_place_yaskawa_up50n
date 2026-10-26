@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NX100 · Auto Pick V1</title><link rel="stylesheet" href="/static/style.css"><script defer src="/static/app.js"></script></head>
+<body><header class="compactHeader"><div class="badges"><b id="robotLink">ROBOT —</b><b id="cameraLink">CAMERA —</b></div></header><span id="mode" hidden>—</span><span id="ready" hidden>UNKNOWN</span>
+<main><section class="camera panel"><div class="title"><h2>Camera · Nhận diện vật</h2><span id="fps">0 FPS</span></div><div class="preview"><img id="preview" alt="Chờ kết nối camera"><span id="cameraNote">Kết nối hệ thống để xem hình ảnh</span></div><div class="cameraFoot"><span id="detected">Chưa có vật hợp lệ</span><span id="calib">Pixel → Robot Base · mm</span></div></section>
+<section class="panel status"><div class="title"><h2>Trạng thái robot</h2><span>RSTATS</span></div><div id="flags" class="flags"></div><div class="title sub"><h2>Vị trí hiện tại</h2><span>BASE / mm · °</span></div><div id="position" class="position"></div><div class="target"><span>ĐÍCH ĐÃ KHÓA · XY / Z_SAFE</span><strong id="target">— / — / —</strong></div></section>
+<section class="panel controls"><div class="title"><h2>Điều khiển cycle</h2><span id="lease">Chỉ xem</span></div><div id="notice" role="status">REAL · Kết nối hệ thống để điều khiển.</div><div class="buttons"><button id="connect" class="connectButton">CONNECT</button><button id="start" class="primary">▶ START CYCLE</button><button id="hold" class="holdButton">HOLD</button><button id="ack" class="resetButton">RESET</button></div></section>
+<section class="panel io"><div class="title"><h2>I/O · Laser &amp; Vacuum</h2><span>DIGITAL</span></div>
+<div class="sensorInputs"><div class="sensorCard"><strong>LASER</strong><b id="laser" class="unknown">UNKNOWN</b></div>
+<div class="sensorCard"><strong>VACUUM 1</strong><b id="pressure1" class="unknown">UNKNOWN</b></div>
+<div class="sensorCard"><strong>VACUUM 2</strong><b id="pressure2" class="unknown">UNKNOWN</b></div></div>
+<div class="handControls"><div class="handCard" role="group" aria-label="HAND 1"><strong>HAND 1</strong><div class="handActions"><button data-channel="1" data-on="true">ON</button><button data-channel="1" data-on="false">OFF</button></div></div>
+<div class="handCard" role="group" aria-label="HAND 2"><strong>HAND 2</strong><div class="handActions"><button data-channel="2" data-on="true">ON</button><button data-channel="2" data-on="false">OFF</button></div></div></div></section>
+<section class="panel settings"><div class="title"><h2>Thông số vận hành</h2></div><form id="settings"><div class="fields"><label>Plane Z <em>mm · mặt phẳng calibration</em><input name="plane_z_mm" type="number" step="0.001" min="-500" max="2000" required></label><label>Z_safe <em>mm · Z tuyệt đối Base</em><input name="z_safe" type="number" step="0.001" min="-500" max="2500" required></label><label>MOVL speed <em>mm/s</em><input name="movl_speed" type="number" step="0.1" min="0.1" max="500" required></label><label>RX <em>&deg;</em><input name="rx" type="number" step="0.01" min="-180" max="180" required></label><label>RY <em>&deg;</em><input name="ry" type="number" step="0.01" min="-180" max="180" required></label><label>RZ <em>&deg;</em><input name="rz" type="number" step="0.01" min="-180" max="180" required></label></div><button type="submit">LƯU THÔNG SỐ</button></form></section>
+<section class="panel dropControl"><div class="title"><h2>Xếp ván</h2><span id="dropStatus">Đang chờ</span></div>
+<div class="dropGrid">
+<div><small>Z THẢ ĐẦU</small><strong><span id="firstDropZ">330</span> mm</strong></div>
+<div><small>ĐỘ DÀY VÁN</small><strong><span id="dropThickness">12</span> mm</strong></div>
+<form id="stackCountForm"><label for="stackedCount">ĐÃ XẾP</label><div class="countEditor"><input id="stackedCount" type="number" min="0" max="9007199254740991" step="1" value="0" required><button id="saveStackCount" type="submit">LƯU</button></div></form>
+<div class="dropActions"><button id="resetStack">ĐẶT LẠI</button></div>
+</div><p id="dropNotice" class="muted" role="status"></p>
+</section>
+</main><span id="state" hidden>IDLE</span></body></html>
